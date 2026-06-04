@@ -134,7 +134,7 @@ function generatePassword() {
   document.getElementById('enc-plain').value = pwd;
 }
  
-, td = new TextDecoder();
+const te = new TextEncoder(), td = new TextDecoder();
  
 async function getKey(pwd, salt) {
   const km = await crypto.subtle.importKey('raw', te.encode(pwd), 'PBKDF2', false, ['deriveKey']);
