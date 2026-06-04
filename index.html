@@ -52,6 +52,14 @@
   }
   .copy-btn:active { background: #3a3d4a; color: #00d4aa; }
   .err { color: #ff4757; font-size: 13px; margin-top: 10px; display: none; }
+  .input-with-btn { display: flex; gap: 8px; align-items: center; }
+  .input-with-btn input { flex: 1; }
+  .gen-btn {
+    background: #7c3aed; color: #fff; border: none; border-radius: 10px;
+    padding: 12px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+    white-space: nowrap; font-family: inherit; transition: all .15s; flex-shrink: 0;
+  }
+  .gen-btn:active { background: #6d28d9; }
   hr { border: none; border-top: 1px solid #2a2d3a; margin: 28px 0; }
   .section-title {
     font-size: 13px; font-weight: 600; color: #6b7280;
@@ -60,10 +68,9 @@
 </style>
 </head>
 <body>
-
+ 
 <h2>🔐 VaultX</h2>
-<p class="sub">AES-256 — sirf master password se kaam karega</p>
-
+ 
 <!-- ENCRYPT -->
 <div class="section-title">🔒 Encrypt</div>
 <div class="field">
@@ -72,7 +79,10 @@
 </div>
 <div class="field">
   <label>Original Password</label>
-  <input type="text" id="enc-plain" placeholder="e.g. MyGmail@123" autocomplete="off">
+  <div class="input-with-btn">
+    <input type="text" id="enc-plain" placeholder="e.g. MyGmail@123" autocomplete="off">
+    <button class="gen-btn" onclick="generatePassword()">⚡ Generate</button>
+  </div>
 </div>
 <button class="btn enc" onclick="doEncrypt()">🔒 Encrypt</button>
 <div class="result" id="enc-result">
@@ -81,9 +91,9 @@
   <button class="copy-btn" onclick="copyText('enc-output', this)">📋 Copy</button>
 </div>
 <div class="err" id="enc-err"></div>
-
+ 
 <hr>
-
+ 
 <!-- DECRYPT -->
 <div class="section-title">🔓 Decrypt</div>
 <div class="field">
@@ -101,10 +111,31 @@
   <button class="copy-btn" onclick="copyText('dec-output', this)">📋 Copy</button>
 </div>
 <div class="err" id="dec-err"></div>
-
+ 
 <script>
-const te = new TextEncoder(), td = new TextDecoder();
-
+function generatePassword() {
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lower = 'abcdefghijklmnopqrstuvwxyz';
+  const nums  = '0123456789';
+  const spec  = '!@#$%^&*()_+-=[]{}?';
+  const all   = upper + lower + nums + spec;
+  let pwd = [
+    upper[Math.floor(Math.random() * upper.length)],
+    upper[Math.floor(Math.random() * upper.length)],
+    lower[Math.floor(Math.random() * lower.length)],
+    lower[Math.floor(Math.random() * lower.length)],
+    nums[Math.floor(Math.random() * nums.length)],
+    nums[Math.floor(Math.random() * nums.length)],
+    spec[Math.floor(Math.random() * spec.length)],
+    spec[Math.floor(Math.random() * spec.length)],
+  ];
+  for (let i = 8; i < 11; i++) pwd.push(all[Math.floor(Math.random() * all.length)]);
+  pwd = pwd.sort(() => Math.random() - 0.5).join('');
+  document.getElementById('enc-plain').value = pwd;
+}
+ 
+, td = new TextDecoder();
+ 
 async function getKey(pwd, salt) {
   const km = await crypto.subtle.importKey('raw', te.encode(pwd), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
@@ -112,7 +143,7 @@ async function getKey(pwd, salt) {
     km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
   );
 }
-
+ 
 async function doEncrypt() {
   const pwd = document.getElementById('enc-master').value;
   const txt = document.getElementById('enc-plain').value;
@@ -128,7 +159,7 @@ async function doEncrypt() {
   document.getElementById('enc-output').textContent = btoa(String.fromCharCode(...out));
   document.getElementById('enc-result').style.display = 'block';
 }
-
+ 
 async function doDecrypt() {
   const pwd = document.getElementById('dec-master').value;
   const b64 = document.getElementById('dec-cipher').value.trim();
@@ -147,7 +178,7 @@ async function doDecrypt() {
     document.getElementById('dec-result').style.display = 'none';
   }
 }
-
+ 
 async function copyText(id, btn) {
   const t = document.getElementById(id).textContent;
   await navigator.clipboard.writeText(t);
@@ -155,6 +186,6 @@ async function copyText(id, btn) {
   setTimeout(() => btn.textContent = '📋 Copy', 2000);
 }
 </script>
-
+ 
 </body>
 </html>
